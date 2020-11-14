@@ -1,8 +1,11 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 	"log"
+	"net/http"
+	"net/url"
 	"strings"
 
 	"github.com/PuerkitoBio/goquery"
@@ -36,6 +39,10 @@ func (p product) String() string {
 }
 
 func main() {
+	telegram_api_ptr := flag.String("api", "", "api token for telegram bot")
+	telegram_chat_id_ptr := flag.String("chat", "", "chat id for telegram bot")
+	flag.Parse()
+
 	product_mapping := map[string]string{
 		"Rogue Olympic Plates":         "https://www.roguefitness.com/rogue-olympic-plates",
 		"Rogue Deep Dish Plates":       "https://www.roguefitness.com/rogue-deep-dish-plates",
@@ -49,7 +56,7 @@ func main() {
 	var products []product
 	for product_name, url := range product_mapping {
 		fmt.Printf("Getting %s...\n", product_name)
-		go make_product(ch, url)
+		go make_products(ch, url)
 	}
 
 	for _, _ = range product_mapping {
@@ -58,14 +65,54 @@ func main() {
 
 	fmt.Println("")
 	fmt.Println("Available Products:")
+	var notify_products []product
 	for _, p := range products {
 		if p.is_available() {
 			fmt.Println(p)
+			if watched(p) {
+				notify_products = append(notify_products, p)
+			}
+		}
+	}
+
+	if *telegram_api_ptr != "" && *telegram_chat_id_ptr != "" {
+		msg := "In Stock Items:\n"
+		for _, p := range notify_products {
+			msg += fmt.Sprintf("- %s\n", p.name)
+		}
+		if len(notify_products) > 0 {
+			send_telegram_message(
+				*telegram_api_ptr,
+				*telegram_chat_id_ptr,
+				msg,
+			)
 		}
 	}
 }
 
-func make_product(ch chan []product, url string) {
+func send_telegram_message(api_token, chat_id, msg string) {
+	endpoint := fmt.Sprintf("https://api.telegram.org/bot%s/sendMessage", api_token)
+	data := url.Values{
+		"chat_id": {chat_id},
+		"text":    {msg},
+	}
+	_, err := http.PostForm(endpoint, data)
+	if err != nil {
+		log.Fatal(err)
+	}
+}
+
+func watched(p product) bool {
+	watched_terms := []string{"45LB", "45 lb"}
+	for _, term := range watched_terms {
+		if strings.Contains(p.name, term) {
+			return true
+		}
+	}
+	return false
+}
+
+func make_products(ch chan []product, url string) {
 	doc, err := goquery.NewDocument(url)
 	if err != nil {
 		log.Fatal(err)
