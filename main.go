@@ -90,7 +90,7 @@ func main() {
 	if *telegram_api_ptr != "" && *telegram_chat_id_ptr != "" {
 		msg := "Watched In Stock Items:\n"
 		for _, p := range notify_products {
-			msg += fmt.Sprintf("- %s\n", p.name)
+			msg += fmt.Sprintf("> %s\n", p)
 		}
 		if len(notify_products) > 0 {
 			fmt.Println()
