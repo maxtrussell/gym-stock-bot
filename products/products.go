@@ -51,13 +51,13 @@ var Products = []Product{
 		URL:      "https://www.roguefitness.com/rogue-color-echo-bumper-plate",
 	},
 	Product{
-		Name:     "Rogue Color Echo Bumper Plates",
+		Name:     "Rogue Mil Spec Bumper Plates",
 		Brand:    "Rogue",
 		Category: "multi",
-		URL:      "https://www.roguefitness.com/rogue-color-echo-bumper-plate",
+		URL:      "https://www.roguefitness.com/rogue-us-mil-sprc-bumper-plates",
 	},
 	Product{
-		Name:     "Rogue Color Mil Spec Echo Bumper Plates",
+		Name:     "Rogue Mil Spec Echo Bumper Plates",
 		Brand:    "Rogue",
 		Category: "multi",
 		URL:      "https://www.roguefitness.com/rogue-mil-echo-bumper-plates-black",
@@ -69,7 +69,7 @@ var Products = []Product{
 		URL:      "https://www.roguefitness.com/rogue-45lb-ohio-power-bar-stainless",
 	},
 	Product{
-		Name:     "Rep Fitness Cast Iron Plates",
+		Name:     "Rep Fitness Iron Plates",
 		Brand:    "RepFitness",
 		Category: "rep",
 		URL:      "https://www.repfitness.com/bars-plates/olympic-plates/iron-plates/rep-iron-plates",
@@ -80,4 +80,10 @@ var Products = []Product{
 		Category: "rep",
 		URL:      "https://www.repfitness.com/bars-plates/olympic-plates/bumper-plates/rep-black-bumper-plates",
 	},
+	// Product{
+	// 	Name:     "Rep Fitness Color Bumper Plates",
+	// 	Brand:    "RepFitness",
+	// 	Category: "rep",
+	// 	URL:      "https://www.repfitness.com/bars-plates/olympic-plates/rep-color-bumper-plates",
+	// },
 }
