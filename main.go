@@ -12,32 +12,34 @@ import (
 	"strings"
 
 	"github.com/PuerkitoBio/goquery"
+
+	"github.com/maxtrussell/gym-stock-bot/products"
 )
 
-type product struct {
+type item struct {
 	name         string
 	price        string
 	availability string
 	brand        string
 }
 
-func (p product) is_available() bool {
+func (i item) is_available() bool {
 	out_of_stock := map[string]bool{
 		"Notify Me":    true,
 		"Out of Stock": true,
 		"Out of stock": true,
 		"OUT OF STOCK": true,
 	}
-	return !out_of_stock[p.availability]
+	return !out_of_stock[i.availability]
 }
 
-func (p product) String() string {
+func (i item) String() string {
 	return fmt.Sprintf(
 		"%s %s @ %s, in stock: %t",
-		p.brand,
-		p.name,
-		p.price,
-		p.is_available(),
+		i.brand,
+		i.name,
+		i.price,
+		i.is_available(),
 	)
 }
 
@@ -46,41 +48,29 @@ func main() {
 	telegram_chat_id_ptr := flag.String("chat", "", "chat id for telegram bot")
 	flag.Parse()
 
-	product_mapping := map[string]string{
-		"Rogue Olympic Plates":          "https://www.roguefitness.com/rogue-olympic-plates",
-		"Rogue Deep Dish Plates":        "https://www.roguefitness.com/rogue-deep-dish-plates",
-		"Rogue Steel Plates":            "https://www.roguefitness.com/rogue-calibrated-lb-steel-plates",
-		"Rogue Bumper Plates":           "https://www.roguefitness.com/rogue-hg-2-0-bumper-plates",
-		"Rogue Fleck Plate":             "https://www.roguefitness.com/rogue-fleck-plates",
-		"Rogue Echo Bumper Plate v2":    "https://www.roguefitness.com/rogue-echo-bumper-plates-with-white-text",
-		"Rogue Color Echo Bumper Plate": "https://www.roguefitness.com/rogue-color-echo-bumper-plate",
-		"Rep Fitness Cast Iron Plates":  "https://www.repfitness.com/bars-plates/olympic-plates/iron-plates/rep-iron-plates",
-		"Rep Fitness Bumper Plates":     "https://www.repfitness.com/bars-plates/olympic-plates/bumper-plates/rep-black-bumper-plates",
+	ch := make(chan []item)
+	var items []item
+	for _, product := range products.Products {
+		fmt.Printf("Getting %s...\n", product.Name)
+		go make_items(ch, product)
 	}
 
-	ch := make(chan []product)
-	var products []product
-	for product_name, url := range product_mapping {
-		fmt.Printf("Getting %s...\n", product_name)
-		go make_products(ch, url)
-	}
-
-	for _, _ = range product_mapping {
-		products = append(products, <-ch...)
+	for _, _ = range products.Products {
+		items = append(items, <-ch...)
 	}
 
 	fmt.Println("")
 	fmt.Println("Available Products:")
-	already_notified := get_notified_products()
-	var notify_products []product
-	var watched_available_products []product
-	for _, p := range products {
+	already_notified := get_notified_items()
+	var notify_items []item
+	var watched_available_items []item
+	for _, p := range items {
 		if p.is_available() {
 			fmt.Println(p)
 			if watched(p) {
-				watched_available_products = append(watched_available_products, p)
+				watched_available_items = append(watched_available_items, p)
 				if !already_notified[p.name] {
-					notify_products = append(notify_products, p)
+					notify_items = append(notify_items, p)
 				}
 			}
 		}
@@ -89,10 +79,10 @@ func main() {
 	// Send telegram notification
 	if *telegram_api_ptr != "" && *telegram_chat_id_ptr != "" {
 		msg := "Watched In Stock Items:\n"
-		for _, p := range notify_products {
+		for _, p := range notify_items {
 			msg += fmt.Sprintf("> %s\n", p)
 		}
-		if len(notify_products) > 0 {
+		if len(notify_items) > 0 {
 			fmt.Println()
 			fmt.Println("Sending notification...")
 			fmt.Println(msg)
@@ -102,32 +92,32 @@ func main() {
 				msg,
 			)
 		}
-		// Store notified products, so as to not re-notify
-		var product_names []string
-		for _, p := range watched_available_products {
-			product_names = append(product_names, p.name)
+		// Store notified items, so as to not re-notify
+		var item_names []string
+		for _, p := range watched_available_items {
+			item_names = append(item_names, p.name)
 		}
-		err := ioutil.WriteFile("notified_products.txt", []byte(strings.Join(product_names, "\n")), 0644)
+		err := ioutil.WriteFile("notified_items.txt", []byte(strings.Join(item_names, "\n")), 0644)
 		if err != nil {
 			log.Fatal(err)
 		}
 	}
 }
 
-func get_notified_products() map[string]bool {
-	file, err := os.Open("notified_products.txt")
+func get_notified_items() map[string]bool {
+	file, err := os.Open("notified_items.txt")
 	if err != nil {
 		// The file probably does not exist
 		return map[string]bool{}
 	}
 	defer file.Close()
 
-	notified_products := make(map[string]bool)
+	notified_items := make(map[string]bool)
 	scanner := bufio.NewScanner(file)
 	for scanner.Scan() {
-		notified_products[strings.Trim(scanner.Text(), "\n")] = true
+		notified_items[strings.Trim(scanner.Text(), "\n")] = true
 	}
-	return notified_products
+	return notified_items
 }
 
 func send_telegram_message(api_token, chat_id, msg string) {
@@ -142,8 +132,11 @@ func send_telegram_message(api_token, chat_id, msg string) {
 	}
 }
 
-func watched(p product) bool {
-	watched_terms := []string{"45LB", "45 lb"}
+func watched(p item) bool {
+	watched_terms := []string{
+		"45LB", "45 lb",
+		"Ohio Power Bar - Stainless Steel",
+	}
 	for _, term := range watched_terms {
 		if strings.Contains(p.name, term) {
 			return true
@@ -152,46 +145,61 @@ func watched(p product) bool {
 	return false
 }
 
-func make_products(ch chan []product, url string) {
-	doc, err := goquery.NewDocument(url)
+func make_items(ch chan []item, product products.Product) {
+	doc, err := goquery.NewDocument(product.URL)
 	if err != nil {
 		log.Fatal(err)
 	}
-	var products []product
-	if strings.Contains(url, "roguefitness") {
-		products = make_rogue_products(doc)
-	} else if strings.Contains(url, "repfitness") {
-		products = make_rep_products(doc)
+	var items []item
+	switch product.Brand + ":" + product.Category {
+	case "Rogue:multi":
+		items = make_rogue_multi_items(doc)
+	case "Rogue:single":
+		items = make_rogue_single_items(doc)
+	case "RepFitness:rep":
+		items = make_rep_items(doc)
 	}
-	ch <- products
+	ch <- items
 }
 
-func make_rep_products(doc *goquery.Document) []product {
-	var products []product
-	doc.Find(".grouped-items-table tr").Each(func(index int, item *goquery.Selection) {
-		p := product{
-			name:         strings.Trim(item.Find("td").Eq(0).Text(), " \n"),
-			price:        strings.Trim(item.Find(".price").Text(), " \n"),
-			availability: strings.Trim(item.Find(".availability").Text(), " \n"),
+func make_rep_items(doc *goquery.Document) []item {
+	var items []item
+	doc.Find(".grouped-items-table tr").Each(func(index int, selection *goquery.Selection) {
+		i := item{
+			name:         strings.Trim(selection.Find("td").Eq(0).Text(), " \n"),
+			price:        strings.Trim(selection.Find(".price").Text(), " \n"),
+			availability: strings.Trim(selection.Find(".availability").Text(), " \n"),
 			brand:        "RepFitness",
 		}
-		if p.name != "" {
-			products = append(products, p)
+		if i.name != "" {
+			items = append(items, i)
 		}
 	})
-	return products
+	return items
 }
 
-func make_rogue_products(doc *goquery.Document) []product {
-	var products []product
-	doc.Find(".grouped-item").Each(func(index int, item *goquery.Selection) {
-		p := product{
-			name:         item.Find(".item-name").Text(),
-			price:        item.Find(".price").Text(),
-			availability: strings.Trim(item.Find(".bin-stock-availability").Text(), " \n"),
+func make_rogue_single_items(doc *goquery.Document) []item {
+	var items []item
+	i := item{
+		name:         doc.Find(".product-title").Text(),
+		price:        doc.Find(".price").Text(),
+		availability: strings.Trim(doc.Find(".product-options-bottom button").Text(), " \n"),
+		brand:        "Rogue",
+	}
+	items = append(items, i)
+	return items
+}
+
+func make_rogue_multi_items(doc *goquery.Document) []item {
+	var items []item
+	doc.Find(".grouped-item").Each(func(index int, selection *goquery.Selection) {
+		i := item{
+			name:         selection.Find(".item-name").Text(),
+			price:        selection.Find(".price").Text(),
+			availability: strings.Trim(selection.Find(".bin-stock-availability").Text(), " \n"),
 			brand:        "Rogue",
 		}
-		products = append(products, p)
+		items = append(items, i)
 	})
-	return products
+	return items
 }
