@@ -5,6 +5,7 @@ type Product struct {
 	URL      string
 	Brand    string
 	Category string
+	TestFile string
 }
 
 var Products = []Product{
@@ -80,10 +81,49 @@ var Products = []Product{
 		Category: "rep",
 		URL:      "https://www.repfitness.com/bars-plates/olympic-plates/bumper-plates/rep-black-bumper-plates",
 	},
-	// Product{
-	// 	Name:     "Rep Fitness Color Bumper Plates",
-	// 	Brand:    "RepFitness",
-	// 	Category: "rep",
-	// 	URL:      "https://www.repfitness.com/bars-plates/olympic-plates/rep-color-bumper-plates",
-	// },
+	Product{
+		Name:     "Rep Fitness Color Bumper Plates",
+		Brand:    "RepFitness",
+		Category: "rep",
+		URL:      "https://www.repfitness.com/bars-plates/olympic-plates/rep-color-bumper-plates",
+		TestFile: "test_pages/rep-color-bumper-plates.html",
+	},
+}
+
+var TestProducts = []Product{
+	Product{
+		Name:     "Rep Fitness Color Bumper Plates",
+		Brand:    "RepFitness",
+		Category: "rep",
+		URL:      "https://www.repfitness.com/bars-plates/olympic-plates/rep-color-bumper-plates",
+		TestFile: "test_pages/rep-color-bumper-plates.html",
+	},
+	Product{
+		Name:     "Rogue Color Echo Bumper Plates",
+		Brand:    "Rogue",
+		Category: "multi",
+		URL:      "https://www.roguefitness.com/rogue-color-echo-bumper-plate",
+		TestFile: "test_pages/rogue-color-echo-bumper-plate.html",
+	},
+	Product{
+		Name:     "Rogue Ohio Power Bar Stainless Steel",
+		Brand:    "Rogue",
+		Category: "single",
+		URL:      "https://www.roguefitness.com/rogue-45lb-ohio-power-bar-stainless",
+		TestFile: "test_pages/rogue-45lb-ohio-power-bar-stainless.html",
+	},
+	Product{
+		Name:     "Rogue Olympic Plates",
+		Brand:    "Rogue",
+		Category: "multi",
+		URL:      "https://www.roguefitness.com/rogue-olympic-plates",
+		TestFile: "test_pages/rogue-olympic-plates.html",
+	},
+	Product{
+		Name:     "Rogue Fleck Plates",
+		Brand:    "Rogue",
+		Category: "multi",
+		URL:      "https://www.roguefitness.com/rogue-fleck-plates",
+		TestFile: "test_pages/rogue-fleck-plates.html",
+	},
 }

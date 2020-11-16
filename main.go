@@ -46,16 +46,22 @@ func (i item) String() string {
 func main() {
 	telegram_api_ptr := flag.String("api", "", "api token for telegram bot")
 	telegram_chat_id_ptr := flag.String("chat", "", "chat id for telegram bot")
+	test_ptr := flag.Bool("test", false, "whether to run offline for test purposes")
 	flag.Parse()
+
+	all_products := products.Products
+	if *test_ptr {
+		all_products = products.TestProducts
+	}
 
 	ch := make(chan []item)
 	var items []item
-	for _, product := range products.Products {
+	for _, product := range all_products {
 		fmt.Printf("Getting %s...\n", product.Name)
-		go make_items(ch, product)
+		go make_items(ch, product, *test_ptr)
 	}
 
-	for _, _ = range products.Products {
+	for _, _ = range all_products {
 		items = append(items, <-ch...)
 	}
 
@@ -134,8 +140,12 @@ func send_telegram_message(api_token, chat_id, msg string) {
 
 func watched(p item) bool {
 	watched_terms := []string{
-		"45LB", "45 lb",
 		"Ohio Power Bar - Stainless Steel",
+		"45LB Rogue Fleck",
+		"45LB Rogue Color",
+		"1.25LB Rogue Olympic",
+		"2.5LB Rogue Olympic",
+		"5LB Rogue Olympic",
 	}
 	for _, term := range watched_terms {
 		if strings.Contains(p.name, term) {
@@ -145,10 +155,16 @@ func watched(p item) bool {
 	return false
 }
 
-func make_items(ch chan []item, product products.Product) {
-	doc, err := goquery.NewDocument(product.URL)
-	if err != nil {
-		log.Fatal(err)
+func make_items(ch chan []item, product products.Product, test bool) {
+	var doc *goquery.Document
+	var err error
+	if test {
+		doc = get_test_doc(product)
+	} else {
+		doc, err = goquery.NewDocument(product.URL)
+		if err != nil {
+			log.Fatal(err)
+		}
 	}
 	var items []item
 	switch product.Brand + ":" + product.Category {
@@ -170,6 +186,9 @@ func make_rep_items(doc *goquery.Document) []item {
 			price:        strings.Trim(selection.Find(".price").Text(), " \n"),
 			availability: strings.Trim(selection.Find(".availability").Text(), " \n"),
 			brand:        "RepFitness",
+		}
+		if i.availability == "" {
+			i.availability = strings.Trim(doc.Find(".availability span").Text(), " \n")
 		}
 		if i.name != "" {
 			items = append(items, i)
@@ -202,4 +221,17 @@ func make_rogue_multi_items(doc *goquery.Document) []item {
 		items = append(items, i)
 	})
 	return items
+}
+
+func get_test_doc(p products.Product) *goquery.Document {
+	f, err := os.Open(p.TestFile)
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer f.Close()
+	doc, err := goquery.NewDocumentFromReader(f)
+	if err != nil {
+		log.Fatal(err)
+	}
+	return doc
 }
