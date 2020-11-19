@@ -42,6 +42,10 @@ func (i item) String() string {
 	)
 }
 
+func (i item) id() string {
+	return fmt.Sprintf("%s: %s", i.product.Name, i.name)
+}
+
 func main() {
 	telegram_api_ptr := flag.String("api", "", "api token for telegram bot")
 	telegram_chat_id_ptr := flag.String("chat", "", "chat id for telegram bot")
@@ -83,7 +87,7 @@ func main() {
 			fmt.Printf("- %s\n", i)
 			if watched(i) {
 				watched_available_items = append(watched_available_items, i)
-				if !already_notified[i.name] {
+				if !already_notified[i.id()] {
 					notify_items = append(notify_items, i)
 				}
 			}
@@ -117,8 +121,8 @@ func main() {
 		}
 		// Store notified items, so as to not re-notify
 		var item_names []string
-		for _, p := range watched_available_items {
-			item_names = append(item_names, p.name)
+		for _, i := range watched_available_items {
+			item_names = append(item_names, i.id())
 		}
 		err := ioutil.WriteFile("notified_items.txt", []byte(strings.Join(item_names, "\n")), 0644)
 		if err != nil {
