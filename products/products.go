@@ -76,7 +76,7 @@ var Products = []Product{
 		URL:      "https://www.repfitness.com/bars-plates/olympic-plates/iron-plates/rep-iron-plates",
 	},
 	Product{
-		Name:     "Rep Fitness Bumper Plates",
+		Name:     "Rep Fitness Black Bumper Plates",
 		Brand:    "RepFitness",
 		Category: "rep",
 		URL:      "https://www.repfitness.com/bars-plates/olympic-plates/bumper-plates/rep-black-bumper-plates",
@@ -97,6 +97,13 @@ var TestProducts = []Product{
 		Category: "rep",
 		URL:      "https://www.repfitness.com/bars-plates/olympic-plates/rep-color-bumper-plates",
 		TestFile: "test_pages/rep-color-bumper-plates.html",
+	},
+	Product{
+		Name:     "Rep Fitness Black Bumper Plates",
+		Brand:    "RepFitness",
+		Category: "rep",
+		URL:      "https://www.repfitness.com/bars-plates/olympic-plates/bumper-plates/rep-black-bumper-plates",
+		TestFile: "test_pages/rep-black-bumper-plates.html",
 	},
 	Product{
 		Name:     "Rogue Color Echo Bumper Plates",

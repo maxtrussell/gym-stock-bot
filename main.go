@@ -180,11 +180,11 @@ func make_items(ch chan []item, product products.Product, test bool) {
 
 func make_rep_items(doc *goquery.Document) []item {
 	var items []item
-	doc.Find(".grouped-items-table tr").Each(func(index int, selection *goquery.Selection) {
+	doc.Find("#super-product-table tr").Each(func(index int, selection *goquery.Selection) {
 		i := item{
-			name:         strings.Trim(selection.Find("td").Eq(0).Text(), " \n"),
-			price:        strings.Trim(selection.Find(".price").Text(), " \n"),
-			availability: strings.Trim(selection.Find(".availability").Text(), " \n"),
+			name:         selection.Find(".product-item-name").Text(),
+			price:        selection.Find(".price").Text(),
+			availability: strings.Trim(selection.Find(".qty-container").Text(), " \n"),
 			brand:        "RepFitness",
 		}
 		if i.availability == "" {
