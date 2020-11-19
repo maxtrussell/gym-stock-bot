@@ -50,11 +50,12 @@ func main() {
 	telegram_api_ptr := flag.String("api", "", "api token for telegram bot")
 	telegram_chat_id_ptr := flag.String("chat", "", "chat id for telegram bot")
 	test_ptr := flag.Bool("test", false, "whether to run offline for test purposes")
+	update_test_files_ptr := flag.Bool("update-test-files", false, "downloads all test files")
 	flag.Parse()
 
 	all_products := products.Products
-	if *test_ptr {
-		all_products = products.TestProducts
+	if *update_test_files_ptr {
+		get_test_files(all_products)
 	}
 
 	ch := make(chan []item)
@@ -245,7 +246,7 @@ func make_rogue_multi_items(doc *goquery.Document, product products.Product) []i
 }
 
 func get_test_doc(p products.Product) *goquery.Document {
-	f, err := os.Open(p.TestFile)
+	f, err := os.Open(p.GetTestFile())
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -255,4 +256,41 @@ func get_test_doc(p products.Product) *goquery.Document {
 		log.Fatal(err)
 	}
 	return doc
+}
+
+func get_test_files(all_products []products.Product) {
+	// Make test_pages dir if needed
+	if _, err := os.Stat("test_pages"); os.IsNotExist(err) {
+		os.Mkdir("test_pages", 0755)
+	}
+
+	ch := make(chan bool)
+	for _, p := range all_products {
+		fmt.Printf("Getting test file for %s...\n", p.Name)
+		go get_test_file(p, ch)
+	}
+	for _, _ = range all_products {
+		<-ch
+	}
+	fmt.Println("Done fetching test files!")
+	fmt.Println()
+}
+
+func get_test_file(product products.Product, ch chan bool) {
+	resp, err := http.Get(product.URL)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer resp.Body.Close()
+
+	err = ioutil.WriteFile(product.GetTestFile(), body, 0644)
+	if err != nil {
+		log.Fatal(err)
+	}
+	ch <- true
 }
