@@ -163,7 +163,6 @@ func watched(p item) bool {
 		"1.25LB Rogue Olympic",
 		"2.5LB Rogue Olympic",
 		"5LB Rogue Olympic",
-		"25lb Pair",
 	}
 	for _, term := range watched_terms {
 		if strings.Contains(p.name, term) {
