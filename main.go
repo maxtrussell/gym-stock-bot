@@ -17,10 +17,10 @@ import (
 )
 
 type item struct {
+	product      *products.Product
 	name         string
 	price        string
 	availability string
-	brand        string
 }
 
 func (i item) is_available() bool {
@@ -35,8 +35,7 @@ func (i item) is_available() bool {
 
 func (i item) String() string {
 	return fmt.Sprintf(
-		"%s %s @ %s, in stock: %t",
-		i.brand,
+		"%s @ %s, in stock: %t",
 		i.name,
 		i.price,
 		i.is_available(),
@@ -70,13 +69,22 @@ func main() {
 	already_notified := get_notified_items()
 	var notify_items []item
 	var watched_available_items []item
-	for _, p := range items {
-		if p.is_available() {
-			fmt.Println(p)
-			if watched(p) {
-				watched_available_items = append(watched_available_items, p)
-				if !already_notified[p.name] {
-					notify_items = append(notify_items, p)
+	curr_product := &products.Product{}
+	for _, i := range items {
+		if i.is_available() {
+			if i.product.Name != curr_product.Name {
+				if curr_product.Name != "" {
+					fmt.Println()
+				}
+				curr_product = i.product
+				fmt.Printf("%s:\n", curr_product.Name)
+				fmt.Printf("Link: %s\n", curr_product.URL)
+			}
+			fmt.Printf("- %s\n", i)
+			if watched(i) {
+				watched_available_items = append(watched_available_items, i)
+				if !already_notified[i.name] {
+					notify_items = append(notify_items, i)
 				}
 			}
 		}
@@ -85,8 +93,17 @@ func main() {
 	// Send telegram notification
 	if *telegram_api_ptr != "" && *telegram_chat_id_ptr != "" {
 		msg := "Watched In Stock Items:\n"
-		for _, p := range notify_items {
-			msg += fmt.Sprintf("> %s\n", p)
+		curr_product = &products.Product{}
+		for _, i := range notify_items {
+			if i.product.Name != curr_product.Name {
+				if curr_product.Name != "" {
+					msg += "\n"
+				}
+				curr_product = i.product
+				msg += fmt.Sprintf("%s:\n", curr_product.Name)
+				msg += fmt.Sprintf("Link: %s\n", curr_product.URL)
+			}
+			msg += fmt.Sprintf("> %s\n", i)
 		}
 		if len(notify_items) > 0 {
 			fmt.Println()
@@ -146,6 +163,7 @@ func watched(p item) bool {
 		"1.25LB Rogue Olympic",
 		"2.5LB Rogue Olympic",
 		"5LB Rogue Olympic",
+		"25lb Pair",
 	}
 	for _, term := range watched_terms {
 		if strings.Contains(p.name, term) {
@@ -169,23 +187,23 @@ func make_items(ch chan []item, product products.Product, test bool) {
 	var items []item
 	switch product.Brand + ":" + product.Category {
 	case "Rogue:multi":
-		items = make_rogue_multi_items(doc)
+		items = make_rogue_multi_items(doc, product)
 	case "Rogue:single":
-		items = make_rogue_single_items(doc)
+		items = make_rogue_single_items(doc, product)
 	case "RepFitness:rep":
-		items = make_rep_items(doc)
+		items = make_rep_items(doc, product)
 	}
 	ch <- items
 }
 
-func make_rep_items(doc *goquery.Document) []item {
+func make_rep_items(doc *goquery.Document, product products.Product) []item {
 	var items []item
 	doc.Find("#super-product-table tr").Each(func(index int, selection *goquery.Selection) {
 		i := item{
+			product:      &product,
 			name:         selection.Find(".product-item-name").Text(),
 			price:        selection.Find(".price").Text(),
 			availability: strings.Trim(selection.Find(".qty-container").Text(), " \n"),
-			brand:        "RepFitness",
 		}
 		if i.availability == "" {
 			i.availability = strings.Trim(doc.Find(".availability span").Text(), " \n")
@@ -197,26 +215,26 @@ func make_rep_items(doc *goquery.Document) []item {
 	return items
 }
 
-func make_rogue_single_items(doc *goquery.Document) []item {
+func make_rogue_single_items(doc *goquery.Document, product products.Product) []item {
 	var items []item
 	i := item{
+		product:      &product,
 		name:         doc.Find(".product-title").Text(),
 		price:        doc.Find(".price").Text(),
 		availability: strings.Trim(doc.Find(".product-options-bottom button").Text(), " \n"),
-		brand:        "Rogue",
 	}
 	items = append(items, i)
 	return items
 }
 
-func make_rogue_multi_items(doc *goquery.Document) []item {
+func make_rogue_multi_items(doc *goquery.Document, product products.Product) []item {
 	var items []item
 	doc.Find(".grouped-item").Each(func(index int, selection *goquery.Selection) {
 		i := item{
+			product:      &product,
 			name:         selection.Find(".item-name").Text(),
 			price:        selection.Find(".price").Text(),
 			availability: strings.Trim(selection.Find(".bin-stock-availability").Text(), " \n"),
-			brand:        "Rogue",
 		}
 		items = append(items, i)
 	})
