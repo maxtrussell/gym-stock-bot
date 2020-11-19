@@ -225,7 +225,7 @@ func make_rogue_single_items(doc *goquery.Document, product products.Product) []
 		product:      &product,
 		name:         doc.Find(".product-title").Text(),
 		price:        doc.Find(".price").Text(),
-		availability: strings.Trim(doc.Find(".product-options-bottom button").Text(), " \n"),
+		availability: strings.Trim(doc.Find(".bin-signup-dropper button").Text(), " \n"),
 	}
 	items = append(items, i)
 	return items
