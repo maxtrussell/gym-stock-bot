@@ -10,6 +10,7 @@ import (
 	"net/url"
 	"os"
 	"strings"
+	"time"
 
 	"github.com/PuerkitoBio/goquery"
 
@@ -73,10 +74,12 @@ func main() {
 	fmt.Println("Available Products:")
 	already_notified := get_notified_items()
 	var notify_items []item
+	var available_items []item
 	var watched_available_items []item
 	curr_product := &products.Product{}
 	for _, i := range items {
 		if i.is_available() {
+			available_items = append(available_items, i)
 			if i.product.Name != curr_product.Name {
 				if curr_product.Name != "" {
 					fmt.Println()
@@ -94,6 +97,9 @@ func main() {
 			}
 		}
 	}
+
+	// Update last_in_stock.txt
+	last_in_stock(available_items)
 
 	// Send telegram notification
 	if *telegram_api_ptr != "" && *telegram_chat_id_ptr != "" {
@@ -293,4 +299,39 @@ func get_test_file(product products.Product, ch chan bool) {
 		log.Fatal(err)
 	}
 	ch <- true
+}
+
+func last_in_stock(in_stock_now []item) {
+	last_in_stock := read_last_in_stock()
+	t := time.Now()
+	for _, item := range in_stock_now {
+		last_in_stock[item.id()] = t.Format("Jan 02, 2006 15:04")
+	}
+
+	contents := ""
+	for id, timestamp := range last_in_stock {
+		contents += fmt.Sprintf("%s :: %s\n", id, timestamp)
+	}
+	err := ioutil.WriteFile("last_in_stock.txt", []byte(contents), 0644)
+	if err != nil {
+		log.Fatal(err)
+	}
+}
+
+func read_last_in_stock() map[string]string {
+	last_in_stock := map[string]string{}
+	file, err := os.Open("last_in_stock.txt")
+	if os.IsNotExist(err) {
+		last_in_stock = map[string]string{}
+	} else if err != nil {
+		log.Fatal(err)
+	}
+	defer file.Close()
+
+	scanner := bufio.NewScanner(file)
+	for scanner.Scan() {
+		line_parts := strings.Split(scanner.Text(), " :: ")
+		last_in_stock[line_parts[0]] = line_parts[1]
+	}
+	return last_in_stock
 }
