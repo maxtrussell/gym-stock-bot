@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+	"strconv"
 	"strings"
 	"time"
 
@@ -16,6 +17,11 @@ import (
 
 	"github.com/maxtrussell/gym-stock-bot/products"
 )
+
+var STOCK_EMOJIS = map[bool]string{
+	true:  "00002705",
+	false: "0000274C",
+}
 
 type item struct {
 	product      *products.Product
@@ -36,10 +42,10 @@ func (i item) is_available() bool {
 
 func (i item) String() string {
 	return fmt.Sprintf(
-		"%s @ %s, in stock: %t",
+		"%s @ %s, in stock: %s",
 		i.name,
 		i.price,
-		i.is_available(),
+		get_emoji(STOCK_EMOJIS[i.is_available()]),
 	)
 }
 
@@ -334,4 +340,12 @@ func read_last_in_stock() map[string]string {
 		last_in_stock[line_parts[0]] = line_parts[1]
 	}
 	return last_in_stock
+}
+
+func get_emoji(s string) string {
+	r, err := strconv.ParseInt(s, 16, 32)
+	if err != nil {
+		log.Fatal(err)
+	}
+	return string(r)
 }
