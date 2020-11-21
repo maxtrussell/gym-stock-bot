@@ -64,7 +64,8 @@ func InsertStockRow(db *sql.DB, i item.Item) {
 
 func queryLatestStock(db *sql.DB) map[string]*StockRow {
 	q := `
-    SELECT ProductName, ItemName, Price, InStock, Timestamp FROM stock
+    SELECT ProductName, ItemName, Price, InStock, DATETIME(Timestamp, 'localtime')
+    FROM stock
     ORDER BY Timestamp DESC;`
 
 	rows := queryStock(db, q)
