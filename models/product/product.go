@@ -81,19 +81,19 @@ var Products = []Product{
 	Product{
 		Name:     "Rep Fitness Iron Plates",
 		Brand:    "RepFitness",
-		Category: "rep",
+		Category: "multi",
 		URL:      "https://www.repfitness.com/bars-plates/olympic-plates/iron-plates/rep-iron-plates",
 	},
 	Product{
 		Name:     "Rep Fitness Black Bumper Plates",
 		Brand:    "RepFitness",
-		Category: "rep",
+		Category: "multi",
 		URL:      "https://www.repfitness.com/bars-plates/olympic-plates/bumper-plates/rep-black-bumper-plates",
 	},
 	Product{
 		Name:     "Rep Fitness Color Bumper Plates",
 		Brand:    "RepFitness",
-		Category: "rep",
+		Category: "mutli",
 		URL:      "https://www.repfitness.com/bars-plates/olympic-plates/rep-color-bumper-plates",
 	},
 }
