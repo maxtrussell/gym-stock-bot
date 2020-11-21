@@ -3,7 +3,6 @@ package database
 import (
 	"database/sql"
 	"log"
-	"time"
 
 	_ "github.com/mattn/go-sqlite3"
 
@@ -15,7 +14,7 @@ type StockRow struct {
 	ItemName    string
 	Price       string
 	InStock     bool
-	Timestamp   time.Time
+	Timestamp   string
 }
 
 func (r StockRow) ID() string {
