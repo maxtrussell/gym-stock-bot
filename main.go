@@ -158,14 +158,11 @@ func send_telegram_message(api_token, chat_id, msg string) {
 
 func watched(i item.Item) bool {
 	watched_terms := []string{
-		"Ohio Power Bar - Stainless Steel",
-		"45LB Rogue Fleck",
-		"45LB Rogue Color",
-		"1.25LB Rogue Olympic",
-		"2.5LB Rogue Olympic",
-		": 5LB Rogue Olympic",
-		"45LB Rogue Olympic",
-		"Rep Fitness Iron.*45lb",
+		`Ohio Power Bar - Stainless Steel`,
+		`Rogue (Fleck|Color).*(10|25|45|55)LB`,
+		`Rogue Echo Bumper Plate v2: (10|25|45)LB`,
+		`: (1\.25|2\.5|5|45)LB Rogue Olympic`,
+		`Rep Fitness Iron.*45lb`,
 	}
 	for _, term := range watched_terms {
 		re := regexp.MustCompile(term)
