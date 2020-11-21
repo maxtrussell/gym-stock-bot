@@ -29,8 +29,6 @@ func main() {
 	update_db_ptr := flag.Bool("update-db", false, "whether to update the stock db")
 	flag.Parse()
 
-	db := database.Setup()
-
 	all_products := product.Products
 	if *update_test_files_ptr {
 		get_test_files(all_products)
@@ -116,11 +114,8 @@ func main() {
 
 	// Update the stock db
 	if *update_db_ptr {
-		items_map := map[string]item.Item{}
-		for _, i := range items {
-			items_map[i.ID()] = i
-		}
-		database.UpdateStock(db, items_map)
+		db := database.Setup()
+		database.UpdateStock(db, items)
 	}
 }
 

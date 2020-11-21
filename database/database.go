@@ -28,39 +28,15 @@ func Setup() *sql.DB {
 	return db
 }
 
-func UpdateStock(db *sql.DB, items map[string]item.Item) {
-	in_stock := queryLatestStock(db, true)
-	out_of_stock := queryLatestStock(db, false)
-	in_db := map[string]*StockRow{}
-
-	// 0. Map of all items in DB
-	for k, v := range in_stock {
-		in_db[k] = v
-	}
-	for k, v := range out_of_stock {
-		in_db[k] = v
-	}
-
-	// 1. Get out of stock items, and mark in stock if needed
-	for id, _ := range queryLatestStock(db, false) {
-		val, ok := items[id]
-		if ok && val.IsAvailable() {
-			InsertStockRow(db, val)
-		}
-	}
-
-	// 2. Mark in stock items as out of stock as needed
-	// var mark_out_of_stock []item.Item
-	for id, _ := range queryLatestStock(db, true) {
-		val, ok := items[id]
-		if ok && !val.IsAvailable() {
-			InsertStockRow(db, val)
-		}
-	}
-
-	// 3. Add new items
+func UpdateStock(db *sql.DB, items []item.Item) {
+	rows := queryLatestStock(db)
 	for _, i := range items {
-		if _, ok := in_db[i.ID()]; !ok {
+		r, ok := rows[i.ID()]
+		if ok && i.IsAvailable() != r.InStock {
+			// Insert row when availability is mismatched
+			InsertStockRow(db, i)
+		} else if !ok {
+			// Insert new items, not yet in db
 			InsertStockRow(db, i)
 		}
 	}
@@ -86,7 +62,7 @@ func InsertStockRow(db *sql.DB, i item.Item) {
 	}
 }
 
-func queryLatestStock(db *sql.DB, in_stock bool) map[string]*StockRow {
+func queryLatestStock(db *sql.DB) map[string]*StockRow {
 	q := `
     SELECT ProductName, ItemName, Price, InStock, Timestamp FROM stock
     ORDER BY Timestamp DESC;`
@@ -94,8 +70,7 @@ func queryLatestStock(db *sql.DB, in_stock bool) map[string]*StockRow {
 	rows := queryStock(db, q)
 	m := map[string]*StockRow{}
 	for _, r := range rows {
-		_, ok := m[r.ID()]
-		if r.InStock == in_stock && !ok {
+		if _, ok := m[r.ID()]; !ok {
 			m[r.ID()] = r
 		}
 	}
