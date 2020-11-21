@@ -15,6 +15,7 @@ import (
 
 	"github.com/PuerkitoBio/goquery"
 
+	"github.com/maxtrussell/gym-stock-bot/analytics"
 	"github.com/maxtrussell/gym-stock-bot/database"
 	"github.com/maxtrussell/gym-stock-bot/models/item"
 	"github.com/maxtrussell/gym-stock-bot/models/product"
@@ -28,7 +29,14 @@ func main() {
 	test_ptr := flag.Bool("test", false, "whether to run offline for test purposes")
 	update_test_files_ptr := flag.Bool("update-test-files", false, "downloads all test files")
 	update_db_ptr := flag.Bool("update-db", false, "whether to update the stock db")
+	analytics_ptr := flag.String("analyze", "", "item id name to analyze")
 	flag.Parse()
+
+	if *analytics_ptr != "" {
+		db := database.Setup()
+		analytics.ItemReport(db, *analytics_ptr)
+		return
+	}
 
 	all_products := product.Products
 	if *update_test_files_ptr {

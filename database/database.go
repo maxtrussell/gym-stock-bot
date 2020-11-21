@@ -3,6 +3,7 @@ package database
 import (
 	"database/sql"
 	"log"
+	"strings"
 
 	_ "github.com/mattn/go-sqlite3"
 
@@ -61,14 +62,24 @@ func InsertStockRow(db *sql.DB, i item.Item) {
 	}
 }
 
-func queryLatestStock(db *sql.DB) map[string]*StockRow {
+func QueryItemByID(db *sql.DB, id string) []StockRow {
+	id_parts := strings.Split(id, ": ")
+	q := `
+    SELECT ProductName, ItemName, Price, InStock, DATETIME(Timestamp, 'localtime')
+    FROM stock
+    WHERE ProductName = ? and ItemName = ?
+    ORDER BY Timestamp DESC;`
+	return queryStock(db, q, id_parts[0], id_parts[1])
+}
+
+func queryLatestStock(db *sql.DB) map[string]StockRow {
 	q := `
     SELECT ProductName, ItemName, Price, InStock, DATETIME(Timestamp, 'localtime')
     FROM stock
     ORDER BY Timestamp DESC;`
 
 	rows := queryStock(db, q)
-	m := map[string]*StockRow{}
+	m := map[string]StockRow{}
 	for _, r := range rows {
 		if _, ok := m[r.ID()]; !ok {
 			m[r.ID()] = r
@@ -88,14 +99,14 @@ func connect(path string) *sql.DB {
 	return db
 }
 
-func queryStock(db *sql.DB, q string) []*StockRow {
-	rows, err := db.Query(q)
+func queryStock(db *sql.DB, q string, parameters ...interface{}) []StockRow {
+	rows, err := db.Query(q, parameters...)
 	if err != nil {
 		log.Fatal(err)
 	}
 	defer rows.Close()
 
-	var stock_rows []*StockRow
+	var stock_rows []StockRow
 	for rows.Next() {
 		stock_row := StockRow{}
 		err = rows.Scan(
@@ -108,7 +119,7 @@ func queryStock(db *sql.DB, q string) []*StockRow {
 		if err != nil {
 			log.Fatal(err)
 		}
-		stock_rows = append(stock_rows, &stock_row)
+		stock_rows = append(stock_rows, stock_row)
 	}
 	return stock_rows
 }
