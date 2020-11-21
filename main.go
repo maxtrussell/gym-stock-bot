@@ -156,6 +156,8 @@ func watched(i item.Item) bool {
 		"1.25LB Rogue Olympic",
 		"2.5LB Rogue Olympic",
 		": 5LB Rogue Olympic",
+		"45LB Rogue Olympic",
+		"Rep Fitness Iron.*45lb",
 	}
 	for _, term := range watched_terms {
 		re := regexp.MustCompile(term)
