@@ -96,4 +96,10 @@ var Products = []Product{
 		Category: "mutli",
 		URL:      "https://www.repfitness.com/bars-plates/olympic-plates/rep-color-bumper-plates",
 	},
+	Product{
+		Name:     "Rep Fitness PR 1100",
+		Brand:    "RepFitness",
+		Category: "single",
+		URL:      "https://www.repfitness.com/strength-equipment/power-racks/rep-pr-1100",
+	},
 }
