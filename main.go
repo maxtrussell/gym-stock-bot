@@ -14,6 +14,7 @@ import (
 
 	"github.com/PuerkitoBio/goquery"
 
+	"github.com/maxtrussell/gym-stock-bot/database"
 	"github.com/maxtrussell/gym-stock-bot/models/item"
 	"github.com/maxtrussell/gym-stock-bot/models/product"
 	"github.com/maxtrussell/gym-stock-bot/vendors/rep"
@@ -25,7 +26,10 @@ func main() {
 	telegram_chat_id_ptr := flag.String("chat", "", "chat id for telegram bot")
 	test_ptr := flag.Bool("test", false, "whether to run offline for test purposes")
 	update_test_files_ptr := flag.Bool("update-test-files", false, "downloads all test files")
+	update_db_ptr := flag.Bool("update-db", false, "whether to update the stock db")
 	flag.Parse()
+
+	db := database.Setup()
 
 	all_products := product.Products
 	if *update_test_files_ptr {
@@ -108,6 +112,15 @@ func main() {
 		if err != nil {
 			log.Fatal(err)
 		}
+	}
+
+	// Update the stock db
+	if *update_db_ptr {
+		items_map := map[string]item.Item{}
+		for _, i := range items {
+			items_map[i.ID()] = i
+		}
+		database.UpdateStock(db, items_map)
 	}
 }
 
