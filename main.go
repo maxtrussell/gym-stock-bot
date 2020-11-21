@@ -9,49 +9,16 @@ import (
 	"net/http"
 	"net/url"
 	"os"
-	"strconv"
 	"strings"
 	"time"
 
 	"github.com/PuerkitoBio/goquery"
 
-	"github.com/maxtrussell/gym-stock-bot/products"
+	"github.com/maxtrussell/gym-stock-bot/models/item"
+	"github.com/maxtrussell/gym-stock-bot/models/product"
+	"github.com/maxtrussell/gym-stock-bot/vendors/rep"
+	"github.com/maxtrussell/gym-stock-bot/vendors/rogue"
 )
-
-var STOCK_EMOJIS = map[bool]string{
-	true:  "00002705",
-	false: "0000274C",
-}
-
-type item struct {
-	product      *products.Product
-	name         string
-	price        string
-	availability string
-}
-
-func (i item) is_available() bool {
-	out_of_stock := map[string]bool{
-		"Notify Me":    true,
-		"Out of Stock": true,
-		"Out of stock": true,
-		"OUT OF STOCK": true,
-	}
-	return !out_of_stock[i.availability]
-}
-
-func (i item) String() string {
-	return fmt.Sprintf(
-		"%s @ %s, in stock: %s",
-		i.name,
-		i.price,
-		get_emoji(STOCK_EMOJIS[i.is_available()]),
-	)
-}
-
-func (i item) id() string {
-	return fmt.Sprintf("%s: %s", i.product.Name, i.name)
-}
 
 func main() {
 	telegram_api_ptr := flag.String("api", "", "api token for telegram bot")
@@ -60,13 +27,13 @@ func main() {
 	update_test_files_ptr := flag.Bool("update-test-files", false, "downloads all test files")
 	flag.Parse()
 
-	all_products := products.Products
+	all_products := product.Products
 	if *update_test_files_ptr {
 		get_test_files(all_products)
 	}
 
-	ch := make(chan []item)
-	var items []item
+	ch := make(chan []item.Item)
+	var items []item.Item
 	for _, product := range all_products {
 		fmt.Printf("Getting %s...\n", product.Name)
 		go make_items(ch, product, *test_ptr)
@@ -79,25 +46,25 @@ func main() {
 	fmt.Println("")
 	fmt.Println("Available Products:")
 	already_notified := get_notified_items()
-	var notify_items []item
-	var available_items []item
-	var watched_available_items []item
-	curr_product := &products.Product{}
+	var notify_items []item.Item
+	var available_items []item.Item
+	var watched_available_items []item.Item
+	curr_product := &product.Product{}
 	for _, i := range items {
-		if i.is_available() {
+		if i.IsAvailable() {
 			available_items = append(available_items, i)
-			if i.product.Name != curr_product.Name {
+			if i.Product.Name != curr_product.Name {
 				if curr_product.Name != "" {
 					fmt.Println()
 				}
-				curr_product = i.product
+				curr_product = i.Product
 				fmt.Printf("%s:\n", curr_product.Name)
 				fmt.Printf("Link: %s\n", curr_product.URL)
 			}
 			fmt.Printf("- %s\n", i)
 			if watched(i) {
 				watched_available_items = append(watched_available_items, i)
-				if !already_notified[i.id()] {
+				if !already_notified[i.ID()] {
 					notify_items = append(notify_items, i)
 				}
 			}
@@ -110,13 +77,13 @@ func main() {
 	// Send telegram notification
 	if *telegram_api_ptr != "" && *telegram_chat_id_ptr != "" {
 		msg := "Watched In Stock Items:\n"
-		curr_product = &products.Product{}
+		curr_product = &product.Product{}
 		for _, i := range notify_items {
-			if i.product.Name != curr_product.Name {
+			if i.Product.Name != curr_product.Name {
 				if curr_product.Name != "" {
 					msg += "\n"
 				}
-				curr_product = i.product
+				curr_product = i.Product
 				msg += fmt.Sprintf("%s:\n", curr_product.Name)
 				msg += fmt.Sprintf("Link: %s\n", curr_product.URL)
 			}
@@ -135,7 +102,7 @@ func main() {
 		// Store notified items, so as to not re-notify
 		var item_names []string
 		for _, i := range watched_available_items {
-			item_names = append(item_names, i.id())
+			item_names = append(item_names, i.ID())
 		}
 		err := ioutil.WriteFile("notified_items.txt", []byte(strings.Join(item_names, "\n")), 0644)
 		if err != nil {
@@ -172,7 +139,7 @@ func send_telegram_message(api_token, chat_id, msg string) {
 	}
 }
 
-func watched(p item) bool {
+func watched(i item.Item) bool {
 	watched_terms := []string{
 		"Ohio Power Bar - Stainless Steel",
 		"45LB Rogue Fleck",
@@ -182,14 +149,14 @@ func watched(p item) bool {
 		"5LB Rogue Olympic",
 	}
 	for _, term := range watched_terms {
-		if strings.Contains(p.name, term) {
+		if strings.Contains(i.ID(), term) {
 			return true
 		}
 	}
 	return false
 }
 
-func make_items(ch chan []item, product products.Product, test bool) {
+func make_items(ch chan []item.Item, product product.Product, test bool) {
 	var doc *goquery.Document
 	var err error
 	if test {
@@ -200,64 +167,17 @@ func make_items(ch chan []item, product products.Product, test bool) {
 			log.Fatal(err)
 		}
 	}
-	var items []item
-	switch product.Brand + ":" + product.Category {
-	case "Rogue:multi":
-		items = make_rogue_multi_items(doc, product)
-	case "Rogue:single":
-		items = make_rogue_single_items(doc, product)
-	case "RepFitness:rep":
-		items = make_rep_items(doc, product)
+	var items []item.Item
+	switch product.Brand {
+	case "Rogue":
+		items = rogue.MakeRogue(doc, product)
+	case "RepFitness":
+		items = rep.MakeRep(doc, product)
 	}
 	ch <- items
 }
 
-func make_rep_items(doc *goquery.Document, product products.Product) []item {
-	var items []item
-	doc.Find("#super-product-table tr").Each(func(index int, selection *goquery.Selection) {
-		i := item{
-			product:      &product,
-			name:         selection.Find(".product-item-name").Text(),
-			price:        selection.Find(".price").Text(),
-			availability: strings.Trim(selection.Find(".qty-container").Text(), " \n"),
-		}
-		if i.availability == "" {
-			i.availability = strings.Trim(doc.Find(".availability span").Text(), " \n")
-		}
-		if i.name != "" {
-			items = append(items, i)
-		}
-	})
-	return items
-}
-
-func make_rogue_single_items(doc *goquery.Document, product products.Product) []item {
-	var items []item
-	i := item{
-		product:      &product,
-		name:         doc.Find(".product-title").Text(),
-		price:        doc.Find(".price").Text(),
-		availability: strings.Trim(doc.Find(".bin-signup-dropper button").Text(), " \n"),
-	}
-	items = append(items, i)
-	return items
-}
-
-func make_rogue_multi_items(doc *goquery.Document, product products.Product) []item {
-	var items []item
-	doc.Find(".grouped-item").Each(func(index int, selection *goquery.Selection) {
-		i := item{
-			product:      &product,
-			name:         selection.Find(".item-name").Text(),
-			price:        selection.Find(".price").Text(),
-			availability: strings.Trim(selection.Find(".bin-stock-availability").Text(), " \n"),
-		}
-		items = append(items, i)
-	})
-	return items
-}
-
-func get_test_doc(p products.Product) *goquery.Document {
+func get_test_doc(p product.Product) *goquery.Document {
 	f, err := os.Open(p.GetTestFile())
 	if err != nil {
 		log.Fatal(err)
@@ -270,7 +190,7 @@ func get_test_doc(p products.Product) *goquery.Document {
 	return doc
 }
 
-func get_test_files(all_products []products.Product) {
+func get_test_files(all_products []product.Product) {
 	// Make test_pages dir if needed
 	if _, err := os.Stat("test_pages"); os.IsNotExist(err) {
 		os.Mkdir("test_pages", 0755)
@@ -288,7 +208,7 @@ func get_test_files(all_products []products.Product) {
 	fmt.Println()
 }
 
-func get_test_file(product products.Product, ch chan bool) {
+func get_test_file(product product.Product, ch chan bool) {
 	resp, err := http.Get(product.URL)
 	if err != nil {
 		log.Fatal(err)
@@ -307,11 +227,11 @@ func get_test_file(product products.Product, ch chan bool) {
 	ch <- true
 }
 
-func last_in_stock(in_stock_now []item) {
+func last_in_stock(in_stock_now []item.Item) {
 	last_in_stock := read_last_in_stock()
 	t := time.Now()
 	for _, item := range in_stock_now {
-		last_in_stock[item.id()] = t.Format("Jan 02, 2006 15:04")
+		last_in_stock[item.ID()] = t.Format("Jan 02, 2006 15:04")
 	}
 
 	contents := ""
@@ -340,12 +260,4 @@ func read_last_in_stock() map[string]string {
 		last_in_stock[line_parts[0]] = line_parts[1]
 	}
 	return last_in_stock
-}
-
-func get_emoji(s string) string {
-	r, err := strconv.ParseInt(s, 16, 32)
-	if err != nil {
-		log.Fatal(err)
-	}
-	return string(r)
 }
