@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+	"regexp"
 	"strings"
 	"time"
 
@@ -154,10 +155,11 @@ func watched(i item.Item) bool {
 		"45LB Rogue Color",
 		"1.25LB Rogue Olympic",
 		"2.5LB Rogue Olympic",
-		"5LB Rogue Olympic",
+		": 5LB Rogue Olympic",
 	}
 	for _, term := range watched_terms {
-		if strings.Contains(i.ID(), term) {
+		re := regexp.MustCompile(term)
+		if re.FindStringIndex(i.ID()) != nil {
 			return true
 		}
 	}
