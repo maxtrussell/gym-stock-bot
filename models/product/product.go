@@ -79,6 +79,12 @@ var Products = []Product{
 		URL:      "https://www.roguefitness.com/rogue-45lb-ohio-power-bar-stainless",
 	},
 	Product{
+		Name:     "Rogue Curl Bar",
+		Brand:    "Rogue",
+		Category: "multi",
+		URL:      "https://www.roguefitness.com/rogue-curl-bar",
+	},
+	Product{
 		Name:     "Rep Fitness Iron Plates",
 		Brand:    "RepFitness",
 		Category: "multi",

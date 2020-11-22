@@ -41,7 +41,7 @@ func makeRogueMulti(doc *goquery.Document, product product.Product) []item.Item 
 	doc.Find(".grouped-item").Each(func(index int, selection *goquery.Selection) {
 		i := item.Item{
 			Product:      &product,
-			Name:         selection.Find(".item-name").Text(),
+			Name:         strings.TrimSpace(selection.Find(".item-name").Text()),
 			Price:        selection.Find(".price").Text(),
 			Availability: strings.Trim(selection.Find(".bin-stock-availability").Text(), " \n"),
 		}
