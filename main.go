@@ -158,7 +158,7 @@ func send_telegram_message(api_token, chat_id, msg string) {
 
 func watched(i item.Item) bool {
 	watched_terms := []string{
-		`Ohio Power Bar - Stainless Steel`,
+		`Rogue Ohio Power Bar 45LB`,
 		`Rogue (Fleck|Color).*(10|25|45|55)LB`,
 		`Rogue Echo Bumper Plate v2: (10|25|45)LB`,
 		`: (1\.25|2\.5|5|45)LB Rogue Olympic`,
