@@ -72,8 +72,12 @@ func ItemReport(db *sql.DB, id string) {
 	avg_out_of_stock := time_out_of_stock / float64(times_out_of_stock)
 	fmt.Printf("Time in stock: %s\n", formatSeconds(int(time_in_stock)))
 	fmt.Printf("Time out of stock: %s\n", formatSeconds(int(time_out_of_stock)))
-	fmt.Printf("Avg time in stock: %s\n", formatSeconds(int(time_in_stock)/times_in_stock))
-	fmt.Printf("Avg time out of stock: %s\n", formatSeconds(int(time_out_of_stock)/times_out_of_stock))
+	if times_in_stock > 0 {
+		fmt.Printf("Avg time in stock: %s\n", formatSeconds(int(time_in_stock)/times_in_stock))
+	}
+	if times_out_of_stock > 0 {
+		fmt.Printf("Avg time out of stock: %s\n", formatSeconds(int(time_out_of_stock)/times_out_of_stock))
+	}
 
 	// 4. Predicted next in/out of stock
 	var predicted float64
