@@ -163,7 +163,8 @@ func watched(i item.Item) bool {
 		`Rogue Echo Bumper Plate v2: (10|25|45)LB`,
 		`: (1\.25|2\.5|5|45)LB Rogue Olympic`,
 		`Rep Fitness Iron.*45lb`,
-		"PR 1100",
+		`PR 1100`,
+		`Rep Fitness Weight Tree`,
 	}
 	for _, term := range watched_terms {
 		re := regexp.MustCompile(term)

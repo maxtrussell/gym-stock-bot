@@ -16,6 +16,8 @@ func MakeRep(doc *goquery.Document, product product.Product) []item.Item {
 		items = makeRepMulti(doc, product)
 	case "single":
 		items = makeRepSingle(doc, product)
+	case "rack":
+		items = makeRepRack(doc, product)
 	}
 	return items
 }
@@ -40,6 +42,19 @@ func makeRepMulti(doc *goquery.Document, product product.Product) []item.Item {
 }
 
 func makeRepSingle(doc *goquery.Document, product product.Product) []item.Item {
+	// TODO: I don't know what it looks like when it is in stock
+	var items []item.Item
+	i := item.Item{
+		Product:      &product,
+		Name:         product.Name, // temporary
+		Price:        doc.Find(".price").Text(),
+		Availability: doc.Find(".product-info-stock-sku span").Text(),
+	}
+	items = append(items, i)
+	return items
+}
+
+func makeRepRack(doc *goquery.Document, product product.Product) []item.Item {
 	// TODO: I don't know what it looks like when it is in stock
 	var items []item.Item
 	i := item.Item{

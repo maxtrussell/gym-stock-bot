@@ -99,7 +99,13 @@ var Products = []Product{
 	Product{
 		Name:     "Rep Fitness PR 1100",
 		Brand:    "RepFitness",
-		Category: "single",
+		Category: "rack",
 		URL:      "https://www.repfitness.com/strength-equipment/power-racks/rep-pr-1100",
+	},
+	Product{
+		Name:     "Rep Fitness Weight Tree",
+		Brand:    "RepFitness",
+		Category: "single",
+		URL:      "https://www.repfitness.com/bar-and-bumper-plate-tree",
 	},
 }
