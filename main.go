@@ -26,11 +26,17 @@ import (
 func main() {
 	telegram_api_ptr := flag.String("api", "", "api token for telegram bot")
 	telegram_chat_id_ptr := flag.String("chat", "", "chat id for telegram bot")
+	telegram_server := flag.Bool("server", false, "whether or not to be a telegram server")
 	test_ptr := flag.Bool("test", false, "whether to run offline for test purposes")
 	update_test_files_ptr := flag.Bool("update-test-files", false, "downloads all test files")
 	update_db_ptr := flag.Bool("update-db", false, "whether to update the stock db")
 	analytics_ptr := flag.String("analyze", "", "item id name to analyze")
 	flag.Parse()
+
+	if *telegram_server {
+		telegram.ListenAndServe(*telegram_api_ptr)
+		return
+	}
 
 	if *analytics_ptr != "" {
 		db := database.Setup()
