@@ -7,7 +7,6 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
-	"net/url"
 	"os"
 	"regexp"
 	"strings"
@@ -19,6 +18,7 @@ import (
 	"github.com/maxtrussell/gym-stock-bot/database"
 	"github.com/maxtrussell/gym-stock-bot/models/item"
 	"github.com/maxtrussell/gym-stock-bot/models/product"
+	"github.com/maxtrussell/gym-stock-bot/telegram"
 	"github.com/maxtrussell/gym-stock-bot/vendors/rep"
 	"github.com/maxtrussell/gym-stock-bot/vendors/rogue"
 )
@@ -104,7 +104,7 @@ func main() {
 			fmt.Println()
 			fmt.Println("Sending notification...")
 			fmt.Println(msg)
-			send_telegram_message(
+			telegram.SendMessage(
 				*telegram_api_ptr,
 				*telegram_chat_id_ptr,
 				msg,
@@ -144,28 +144,15 @@ func get_notified_items() map[string]bool {
 	return notified_items
 }
 
-func send_telegram_message(api_token, chat_id, msg string) {
-	endpoint := fmt.Sprintf("https://api.telegram.org/bot%s/sendMessage", api_token)
-	data := url.Values{
-		"chat_id": {chat_id},
-		"text":    {msg},
-	}
-	_, err := http.PostForm(endpoint, data)
-	if err != nil {
-		log.Fatal(err)
-	}
-}
-
 func watched(i item.Item) bool {
 	watched_terms := []string{
 		`Rogue Ohio Power Bar 45LB`,
 		`Rogue (Fleck|Color).*(10|25|45|55)LB`,
 		`Rogue Echo Bumper Plate v2: (10|25|45)LB`,
 		`: (1\.25|2\.5|5|45)LB Rogue Olympic`,
-		`Rep Fitness Iron.*45lb`,
-		`PR 1100`,
 		`Rep Fitness Weight Tree`,
 		`Curl Bar`,
+		`York Legacy.* (2\.5|5|10)LB`,
 	}
 	for _, term := range watched_terms {
 		re := regexp.MustCompile(term)

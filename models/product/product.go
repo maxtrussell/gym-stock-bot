@@ -85,6 +85,12 @@ var Products = []Product{
 		URL:      "https://www.roguefitness.com/rogue-curl-bar",
 	},
 	Product{
+		Name:     "York Legacy Iron Plates",
+		Brand:    "Rogue",
+		Category: "multi",
+		URL:      "https://www.roguefitness.com/york-legacy-iron-plates",
+	},
+	Product{
 		Name:     "Rep Fitness Iron Plates",
 		Brand:    "RepFitness",
 		Category: "multi",
