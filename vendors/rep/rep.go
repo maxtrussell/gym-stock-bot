@@ -32,7 +32,7 @@ func makeRepMulti(doc *goquery.Document, product product.Product) []item.Item {
 			Availability: strings.Trim(selection.Find(".qty-container").Text(), " \n"),
 		}
 		if i.Availability == "" {
-			i.Availability = strings.Trim(doc.Find(".availability span").Text(), " \n")
+			i.Availability = doc.Find(".product-info-stock-sku span").Text()
 		}
 		if i.Name != "" {
 			items = append(items, i)

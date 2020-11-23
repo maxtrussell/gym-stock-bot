@@ -114,4 +114,10 @@ var Products = []Product{
 		Category: "single",
 		URL:      "https://www.repfitness.com/bar-and-bumper-plate-tree",
 	},
+	Product{
+		Name:     "Rep Fitness Curl Bar",
+		Brand:    "RepFitness",
+		Category: "multi",
+		URL:      "https://www.repfitness.com/bars-plates/olympic-bars/rep-ez-curl-barbell",
+	},
 }

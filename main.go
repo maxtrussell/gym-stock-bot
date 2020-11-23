@@ -165,7 +165,7 @@ func watched(i item.Item) bool {
 		`Rep Fitness Iron.*45lb`,
 		`PR 1100`,
 		`Rep Fitness Weight Tree`,
-		`Rogue Curl Bar`,
+		`Curl Bar`,
 	}
 	for _, term := range watched_terms {
 		re := regexp.MustCompile(term)
