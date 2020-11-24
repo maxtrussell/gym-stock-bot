@@ -153,8 +153,7 @@ func get_notified_items() map[string]bool {
 func watched(i item.Item) bool {
 	watched_terms := []string{
 		`Rogue Ohio Power Bar 45LB`,
-		`Rogue (Fleck|Color).*(10|25|45|55)LB`,
-		`Rogue Echo Bumper Plate v2: (10|25|45)LB`,
+		`Rogue Color.*(25|45|55)LB`,
 		`: (1\.25|2\.5|5|45)LB Rogue Olympic`,
 		`Rep Fitness Weight Tree`,
 		`Curl Bar`,
