@@ -73,10 +73,28 @@ var Products = []Product{
 		URL:      "https://www.roguefitness.com/rogue-mil-echo-bumper-plates-black",
 	},
 	Product{
-		Name:     "Rogue Ohio Power Bar 45LB",
+		Name:     "Rogue Ohio Power Bar 45LB Stainless Steel",
 		Brand:    "Rogue",
 		Category: "script",
 		URL:      "https://www.roguefitness.com/rogue-45lb-ohio-power-bar-stainless",
+	},
+	Product{
+		Name:     "Rogue Ohio Power Bar 45LB Black Zinc",
+		Brand:    "Rogue",
+		Category: "single",
+		URL:      "https://www.roguefitness.com/rogue-45lb-ohio-power-bar-black-zinc",
+	},
+	Product{
+		Name:     "Rogue Ohio Power Bar 45LB Bare Steel",
+		Brand:    "Rogue",
+		Category: "single",
+		URL:      "https://www.roguefitness.com/rogue-45lb-ohio-power-bar-bare-steel",
+	},
+	Product{
+		Name:     "Rogue Ohio Power Bar 45LB E Coat",
+		Brand:    "Rogue",
+		Category: "single",
+		URL:      "https://www.roguefitness.com/rogue-ohio-power-bar-e-coat",
 	},
 	Product{
 		Name:     "Rogue Curl Bar",

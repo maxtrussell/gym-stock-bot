@@ -30,7 +30,10 @@ func makeRogueSingle(doc *goquery.Document, product product.Product) []item.Item
 		Product:      &product,
 		Name:         doc.Find(".product-title").Text(),
 		Price:        doc.Find(".price").Text(),
-		Availability: strings.Trim(doc.Find(".bin-signup-dropper button").Text(), " \n"),
+		Availability: strings.Trim(doc.Find(".product-options-bottom button").Text(), " \n"),
+	}
+	if strings.Contains(i.Availability, "Notify Me") {
+		i.Availability = "Out of stock"
 	}
 	items = append(items, i)
 	return items
