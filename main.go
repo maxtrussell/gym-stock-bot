@@ -34,6 +34,9 @@ func main() {
 	analytics_ptr := flag.String("analyze", "", "item id name to analyze")
 	flag.Parse()
 
+	start_time := time.Now()
+	fmt.Printf("Current time: %s\n", start_time)
+
 	if *telegram_server {
 		go telegram.ListenAndServe(*telegram_api_ptr)
 		web.ListenAndServe()
@@ -136,6 +139,10 @@ func main() {
 		db := database.Setup()
 		database.UpdateStock(db, items)
 	}
+
+	end_time := time.Now()
+	fmt.Println()
+	fmt.Printf("Completed in %.2f seconds\n", end_time.Sub(start_time).Seconds())
 }
 
 func get_notified_items() map[string]bool {

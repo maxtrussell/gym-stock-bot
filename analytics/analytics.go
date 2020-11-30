@@ -97,7 +97,7 @@ func formatSeconds(s int) string {
 	mins := (s % 3600) / 60
 	msg := fmt.Sprintf("%dh%d", hours, mins)
 	if days > 0 {
-		msg = fmt.Sprintf("%d days %s", days, msg)
+		msg = fmt.Sprintf("%dd %s", days, msg)
 	}
 	return msg
 }
