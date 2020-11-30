@@ -21,6 +21,7 @@ import (
 	"github.com/maxtrussell/gym-stock-bot/telegram"
 	"github.com/maxtrussell/gym-stock-bot/vendors/rep"
 	"github.com/maxtrussell/gym-stock-bot/vendors/rogue"
+	"github.com/maxtrussell/gym-stock-bot/web"
 )
 
 func main() {
@@ -34,7 +35,8 @@ func main() {
 	flag.Parse()
 
 	if *telegram_server {
-		telegram.ListenAndServe(*telegram_api_ptr)
+		go telegram.ListenAndServe(*telegram_api_ptr)
+		web.ListenAndServe()
 		return
 	}
 
