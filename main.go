@@ -60,6 +60,8 @@ func main() {
 		items = append(items, <-ch...)
 	}
 
+	watched_terms := read_watched()
+
 	fmt.Println("")
 	fmt.Println("Available Products:")
 	already_notified := get_notified_items()
@@ -79,7 +81,7 @@ func main() {
 				fmt.Printf("Link: %s\n", curr_product.URL)
 			}
 			fmt.Printf("- %s\n", i)
-			if watched(i) {
+			if watched(i, watched_terms) {
 				watched_available_items = append(watched_available_items, i)
 				if !already_notified[i.ID()] {
 					notify_items = append(notify_items, i)
@@ -150,16 +152,7 @@ func get_notified_items() map[string]bool {
 	return notified_items
 }
 
-func watched(i item.Item) bool {
-	watched_terms := []string{
-		`Rogue Ohio Power Bar 45LB Stainless`,
-		`Rogue Color.*(25|45|55)LB`,
-		`: (1\.25|2\.5|5)LB Rogue Olympic`,
-		`Rep Fitness Weight Tree`,
-		`Rogue Echo Bumper Plate v2: 10LB Rogue Echo Pair V2`,
-		`Curl Bar`,
-		`York Legacy.* (2\.5|5|10)LB`,
-	}
+func watched(i item.Item, watched_terms []string) bool {
 	for _, term := range watched_terms {
 		re := regexp.MustCompile(term)
 		if re.FindStringIndex(i.ID()) != nil {
@@ -273,4 +266,21 @@ func read_last_in_stock() map[string]string {
 		last_in_stock[line_parts[0]] = line_parts[1]
 	}
 	return last_in_stock
+}
+
+func read_watched() []string {
+	watched := []string{}
+	file, err := os.Open("watched.txt")
+	if os.IsNotExist(err) {
+		return watched
+	} else if err != nil {
+		log.Fatal(err)
+	}
+	defer file.Close()
+
+	scanner := bufio.NewScanner(file)
+	for scanner.Scan() {
+		watched = append(watched, scanner.Text())
+	}
+	return watched
 }
