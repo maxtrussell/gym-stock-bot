@@ -133,6 +133,18 @@ var Products = []Product{
 		URL:      "https://www.repfitness.com/strength-equipment/power-racks/rep-pr-1100",
 	},
 	Product{
+		Name:     "Rep Fitness PR 1100 Lat Row Attachment",
+		Brand:    "RepFitness",
+		Category: "single",
+		URL:      "https://www.repfitness.com/strength-equipment/rack-attachments/1000-series-attachments/rep-lat-pull-down-low-row-attachment",
+	},
+	Product{
+		Name:     "Rep Fitness PR 1100 Dip Attachment",
+		Brand:    "RepFitness",
+		Category: "single",
+		URL:      "https://www.repfitness.com/catalog/product/view/id/355/s/rep-power-rack-dip-attachment/category/544/",
+	},
+	Product{
 		Name:     "Rep Fitness Weight Tree",
 		Brand:    "RepFitness",
 		Category: "single",
